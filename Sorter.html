@@ -1,0 +1,979 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Sorter</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Performance sorter <button type="button" class="btn" data-toggle="modal" data-target="#help_modal"><span class="glyphicon glyphicon-question-sign"></span></button></h1>
+
+        <!-- File Manipulation --->
+        <h2>File</h2>
+        <div class="row">
+            <div class="col-sm-3">
+                <div class="input-group">
+                    <span class="input-group-addon">Select a file:</span>
+                    <input class="form-control" type="file" id="doc_upload">
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <button type="button" class="btn" id="doc_download"><span class="glyphicon glyphicon-download-alt"></span></button>
+            </div>
+        </div>
+
+        <!-- Groups --->
+        <h2>Groups</h2>
+        <div class="row perf_groups">
+            <!-- Auto Group -->
+            <div class="col-sm-3 perf_group auto_group">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <div class="col-sm-10"><abbr title="Performances within this category will be automatically sorted into one of the existing groups"><span class="perf_group_title" data-name="auto">Auto</span></abbr></div>
+                        </div>
+                    </div>
+                    <div class="panel-body perf_group_items">
+                        <!-- Performances -->
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3"><button type="button" class="btn" id="perf_group_add"><span class="glyphicon glyphicon-plus-sign"></span></button></div>
+        </div>
+
+        <!-- New Performance Form --->
+        <h2>New performance</h2>
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label for="np_name"><abbr title="Name of the new performance">Name:</abbr></label>
+                    <input type="text" class="form-control" id="np_name">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label for="np_deadline"><abbr title="Maximum (global) order of the new performance, 0 for infinity">Deadline:</abbr></label>
+                    <input type="number" min="0" class="form-control" id="np_deadline" value="0">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label for="np_group"><abbr title="Specifies under which group should the new performance be placed">Group affinity:</abbr></label>
+                    <select class="form-control" id="np_group">
+                    </select>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <button type="button" class="form-control" id="np_add"><span class="glyphicon glyphicon-plus-sign"></span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configurations --->
+        <h2>Configurations</h2>
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label for="cnf_spaces"><abbr title="Minimum amount of spaces between (any) 2 conflicting pairs, 0 ignores conflicting pairs completely">Conflict spaces:</abbr></label>
+                    <input type="number" min="0" class="form-control" id="cnf_spaces" value="1">
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <button type="button" class="form-control" id="cnf_sort"><span class="glyphicon glyphicon-repeat"></span></button>
+                </div>
+                <div class="col-sm-1">
+                    <button type="button" class="form-control" id="cnf_clear"><span class="glyphicon glyphicon-ban-circle"></span></button>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row cnf_groups">
+            <!-- Sorted Groups -->
+        </div>
+        <div class="row">
+            <div class="text-center cnf_paginationpnl">
+                <!-- Pagination -->
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div class="modal fade" id="help_modal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Help</h4>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Performance sorter</h4>
+                        <div>Welcome to the performance sorter! This utility serves to sort a given set of performances <i>(may represent also other objects)</i> into the given set of groups as well as sorting the performances within every group satisfying various user-defined conditions.</div>
+                        <br />
+
+                        <h4>File</h4>
+                        <div>Save your work in progress by clicking on <span class="glyphicon glyphicon-download-alt"></span> button and load for later use by leveraging the <code>Select a file:</code> control.</div>
+
+                        <h4>Groups</h4>
+                        <div>Specify (independent) groups of performances. Add new groups by clicking on <span class="glyphicon glyphicon-plus-sign"></span> button. Distribute the performances into groups automatically by placing the new performances into the <code>Auto</code> group. Adjust the max size of every group.</div>
+
+                        <h4>Performances</h4>
+                        <div>Add <span class="glyphicon glyphicon-plus-sign"></span> new performances to the created groups. Specify the deadline for performances that need to finish before a certain point. Define conflicting pairs <i>(a pair of performances that must not go one after the other)</i> by clicking on the added performance name, <kbd>highlighting</kbd> it and then selecting the second performance. Should you change your mind, clicking on the <span class="label label-warning"><span class="glyphicon glyphicon-flash"></span> badge</span> removes the pair. Specify expected ordering of performances in a similar way by choosing <code>Predecessor</code> action instead. The <span class="glyphicon glyphicon-menu-right"></span> performance will be scheduled after the <span class="label label-success"><span class="glyphicon glyphicon-step-forward"></span> selected one</span>.</div>
+
+                        <h4>Configurations</h4>
+                        <div>Specify the required separation between the conflicting pairs and hit <span class="glyphicon glyphicon-repeat"></span> to compute the possible configurations. Use pagination to browse between the configurations. <i>(Note only first 100 configurations are shown at most.)</i></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pair Creation Modal -->
+        <div class="modal fade" id="perf_pair_modal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close perf_pair_cancel">&times;</button>
+                        <h4 class="modal-title">Specify action</h4>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success perf_pair_predecessor">Predecessor</button>
+                        <button type="button" class="btn btn-warning perf_pair_conflict">Conflicting pair</button>
+                        <button type="button" class="btn btn-default perf_pair_cancel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Styles -->
+    <style>
+        .interactable {
+            cursor: pointer;
+        }
+
+        .interactable:hover {
+            color: red;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script>
+        // Model
+        const groups = {};
+        const groups_order = [];
+        const performances = {};
+
+        function get_group_perfs(group_name) {
+            const perfs_result = [];
+            for (var perf_name in performances) {
+                const performance = performances[perf_name];
+                if (performance.group == group_name) {
+                    perfs_result.push(perf_name);
+                }
+            }
+
+            return perfs_result;
+        }
+
+        // Utilities
+        const alphas = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
+
+        function string_empty(str) {
+            return !$.trim(str);
+        }
+
+        function quick_clone(obj) {
+            return JSON.parse(JSON.stringify(obj));
+        }
+
+        function remove_fromarr(arr, value) {
+            var index = arr.indexOf(value);
+            if (index > -1) {
+                arr.splice(index, 1);
+            }
+        }
+
+        // UI
+        function ui_get_perfgroup(group_name) {
+            return $('.perf_group .perf_group_title[data-name="' + group_name + '"]').closest(".perf_group");
+        }
+
+        function ui_refresh_groupmaxsize(group_name) {
+            const group_currsize = get_group_perfs(group_name).length;
+
+            const perf_group = ui_get_perfgroup(group_name);
+            const group_maxsize = perf_group.find(".perf_group_maxsize");
+            group_maxsize.attr({ "min": group_currsize });
+
+            if (group_maxsize.val() < group_currsize) {
+                group_maxsize.val(group_currsize);
+                groups[group_name].max_size = group_currsize;
+            }
+        }
+
+        $(document).on('change', '.perf_group_maxsize', function () {
+            const group_name = $(this).attr("data-name");
+            groups[group_name].max_size = Number($(this).val());
+        });
+
+        function np_validate() {
+            const performance_name = $.trim($('#np_name').val());
+            if (string_empty(performance_name)) {
+                alert("The performance name cannot be empty");
+                return false;
+            }
+
+            if (performance_name in performances) {
+                alert("A performance with the name '" + performance_name + "' already exists");
+                return false;
+            }
+
+            return true;
+        }
+
+        function np_add_performance(performance_name, group_name, deadline) {
+            performances[performance_name] = {
+                "deadline": deadline,
+                "group": group_name,
+                "predecessors": {},
+                "conflicts": {}
+            };
+
+            const deadline_tag = deadline > 0 ? '<span class="label label-primary">' + deadline + ' <span class="glyphicon glyphicon-time"></span></span> ' : '';
+
+            const perf_group = ui_get_perfgroup(group_name);
+            perf_group.find(".perf_group_items").append('<div class="perf_group_item"><span class="glyphicon glyphicon-menu-right"></span> <span class="perf_group_item_title interactable" data-name="' + performance_name + '">' + performance_name + '</span> ' + deadline_tag + '<span class="perf_group_item_preds"></span><span class="perf_group_item_conflicts"></span><span class="label label-danger perf_group_item_remove interactable"><span class="glyphicon glyphicon-remove"></span></span></div>');
+
+            ui_refresh_groupmaxsize(group_name);
+        }
+
+        function np_submit_performance() {
+            const group_name = $('#np_group').val();
+            const deadline = $('#np_deadline').val() ?? 0;
+            const performance_name = $.trim($('#np_name').val());
+            np_add_performance(performance_name, group_name, deadline);
+        }
+
+        function np_add_groupselect_option(group_name, group_displayname) {
+            $('#np_group').append('<option value="' + group_name + '">' + group_displayname + '</option>')
+        }
+
+        function np_refresh_groupselect() {
+            $('#np_group option').remove();
+            np_add_groupselect_option("auto", "Auto");
+            for (var group_name in groups) {
+                const group_displayname = groups[group_name].name;
+                np_add_groupselect_option(group_name, group_displayname);
+            }
+
+            $('#np_group').val("auto");
+        }
+
+        function np_reset_form() {
+            $('#np_name').val("");
+            $('#np_deadline').val(0);
+            np_refresh_groupselect();
+        }
+
+        $('#np_add').bind('click', function () {
+            const form_valid = np_validate();
+            if (!form_valid) {
+                return;
+            }
+
+            np_submit_performance();
+            np_reset_form();
+        });
+
+        function np_add_group(group_name, group_displayname, max_size) {
+            groups[group_name] = {
+                "name": group_displayname,
+                "max_size": max_size
+            };
+            groups_order.push(group_name);
+
+            $(".auto_group").before('<div class="col-sm-3 perf_group"><div class="panel panel-default"><div class="panel-heading"><div class="row"><div class="col-sm-10"><span class="perf_group_title" data-name="' + group_name + '">' + group_displayname + '</span></div><div class="col-sm-2"><span class="glyphicon glyphicon-remove-circle pull-right interactable perf_group_remove"></span></div></div></div><div class="panel-body perf_group_items"></div><div class="panel-footer"><div class="input-group"><span class="input-group-addon">Max size</span><input type="number" min="0" value="' + max_size + '" class="form-control perf_group_maxsize" data-name="' + group_name + '"></div></div></div></div>');
+
+            np_refresh_groupselect();
+        }
+
+        $(document).on('click', '#perf_group_add', function () {
+            var group_name = undefined;
+            for (var i = 0; i < alphas.length; i++) {
+                if (!(alphas[i] in groups)) {
+                    group_name = alphas[i];
+                    break;
+                }
+            }
+
+            if (!group_name) {
+                alert("Maximum limit of groups reached");
+                return;
+            }
+
+            const group_displayname = "Group " + group_name;
+            np_add_group(group_name, group_displayname, 0);
+        });
+
+        function ui_remove_perfitem_depends(perf_name) {
+            const conflicts = [];
+            for (var perf_name2 in performances[perf_name].conflicts) {
+                conflicts.push(perf_name2);
+            }
+
+            for (var i = 0; i < conflicts.length; i++) {
+                sel_remove_conflict(perf_name, perf_name2);
+            }
+
+            for (var perf_name_t in performances) {
+                const predecessors = performances[perf_name_t].predecessors;
+                if (perf_name in predecessors) {
+                    sel_remove_predecessor(perf_name_t, perf_name);
+                }
+            }
+        }
+
+        $(document).on('click', '.perf_group_remove', function () {
+            if (Object.keys(groups).length <= 1) {
+                alert("Cannot remove the only single group");
+                return;
+            }
+
+            const perf_group = $(this).closest(".perf_group");
+            const group_name = perf_group.find(".perf_group_title").attr("data-name");
+            remove_fromarr(groups_order, group_name);
+            delete groups[group_name];
+
+            var perf_delete = get_group_perfs(group_name);
+            for (var i = 0; i < perf_delete.length; i++) {
+                const perf_name = perf_delete[i];
+                ui_remove_perfitem_depends(perf_name);
+                delete performances[perf_name];
+            }
+
+            perf_group.remove();
+            sel_deselect();
+            np_refresh_groupselect();
+        });
+
+        $(document).on('click', '.perf_group_item_remove', function () {
+            var perf_group_item = $(this).closest(".perf_group_item")
+            const performance_name = perf_group_item.find(".perf_group_item_title").text();
+            const group_name = performances[performance_name].group;
+            ui_remove_perfitem_depends(performance_name);
+            delete performances[performance_name];
+
+            perf_group_item.remove();
+            sel_deselect();
+            ui_refresh_groupmaxsize(group_name);
+        });
+
+        const sel_perf_item = {
+            "is_selected": false,
+            "original_html": null,
+            "perf_name": null,
+            "second_perf_name": null,
+        };
+
+        function sel_get_perftitle(perf_name) {
+            return $('.perf_group_item_title[data-name="' + perf_name + '"]');
+        }
+
+        function sel_get_perfitem(perf_name) {
+            return sel_get_perftitle(perf_name).closest(".perf_group_item");
+        }
+
+        function sel_highlight(perf_name) {
+            const perf_title = sel_get_perftitle(perf_name);
+            const original_html = perf_title.html();
+            perf_title.html('<kbd>' + original_html + '</kbd>')
+
+            sel_perf_item.is_selected = true;
+            sel_perf_item.original_html = original_html;
+            sel_perf_item.perf_name = perf_name;
+        }
+
+        function sel_deselect() {
+            if (!sel_perf_item.is_selected) {
+                return;
+            }
+
+            const perf_name = sel_perf_item.perf_name;
+            const perf_title = sel_get_perftitle(perf_name);
+            perf_title.html(sel_perf_item.original_html);
+            sel_perf_item.is_selected = false;
+        }
+
+        function sel_close_modal() {
+            $("#perf_pair_modal").modal("hide");
+            sel_deselect();;
+        }
+
+        function sel_get_curr_perfname(badge_item) {
+            return badge_item.closest(".perf_group_item").find(".perf_group_item_title").attr("data-name");
+        }
+
+        $(document).on('click', '.perf_group_item_title', function () {
+            var perf_name = $(this).attr("data-name");
+            if (!sel_perf_item.is_selected) {
+                sel_highlight(perf_name);
+            } else if (sel_perf_item.perf_name == perf_name) {
+                sel_deselect();
+            } else {
+                sel_perf_item.second_perf_name = perf_name;
+                $("#perf_pair_modal").modal("show");
+            }
+        });
+
+        $(document).on('click', '.perf_pair_cancel', sel_close_modal);
+
+        function sel_add_conflict(perf_name1, perf_name2) {
+            const pairs = [{ "i1": perf_name1, "i2": perf_name2 }, { "i1": perf_name2, "i2": perf_name1 }];
+            for (var i = 0; i < pairs.length; i++) {
+                var name1 = pairs[i].i1;
+                var name2 = pairs[i].i2;
+                if (name2 in performances[name1].conflicts) {
+                    continue;
+                }
+
+                performances[name1].conflicts[name2] = true;
+                sel_get_perfitem(name1).find(".perf_group_item_conflicts").append('<span class="label label-warning interactable perf_group_badge_conflict" data-name="' + name2 + '"><span class="glyphicon glyphicon-flash"></span> ' + name2 + '</span> ');
+            }
+        }
+
+        $(document).on('click', '.perf_pair_conflict', function () {
+            const perf_name1 = sel_perf_item.perf_name;
+            const perf_name2 = sel_perf_item.second_perf_name;
+            sel_add_conflict(perf_name1, perf_name2);
+            sel_close_modal();
+        });
+
+        function sel_remove_conflict(perf_name1, perf_name2) {
+            const pairs = [{ "i1": perf_name1, "i2": perf_name2 }, { "i1": perf_name2, "i2": perf_name1 }];
+            for (var i = 0; i < pairs.length; i++) {
+                const name1 = pairs[i].i1;
+                const name2 = pairs[i].i2;
+
+                const conflicts_map = performances[name1].conflicts;
+                delete conflicts_map[name2];
+
+                sel_get_perfitem(name1).find('.perf_group_item_conflicts .perf_group_badge_conflict[data-name="' + name2 + '"]').remove();
+            }
+        }
+
+        $(document).on('click', '.perf_group_badge_conflict', function () {
+            const perf_name1 = sel_get_curr_perfname($(this));
+            const perf_name2 = $(this).attr("data-name");
+            sel_remove_conflict(perf_name1, perf_name2);
+        });
+
+        function sel_add_predecessor(perf_name1, perf_name2) {
+            if (!(perf_name2 in performances[perf_name1].predecessors)) {
+                performances[perf_name1].predecessors[perf_name2] = true;
+                sel_get_perfitem(perf_name1).find(".perf_group_item_preds").append('<span class="label label-success interactable perf_group_badge_pred" data-name="' + perf_name2 + '"><span class="glyphicon glyphicon-step-forward"></span> ' + perf_name2 + '</span> ');
+            }
+        }
+
+        $(document).on('click', '.perf_pair_predecessor', function () {
+            const perf_name1 = sel_perf_item.second_perf_name;
+            const perf_name2 = sel_perf_item.perf_name;
+            sel_add_predecessor(perf_name1, perf_name2);
+            sel_close_modal();
+        });
+
+        function sel_remove_predecessor(perf_name1, perf_name2) {
+            const predecessors_map = performances[perf_name1].predecessors;
+            delete predecessors_map[perf_name2];
+
+            sel_get_perfitem(perf_name1).find('.perf_group_item_preds .perf_group_badge_pred[data-name="' + perf_name2 + '"]').remove();
+        }
+
+        $(document).on('click', '.perf_group_badge_pred', function () {
+            const perf_name1 = sel_get_curr_perfname($(this));
+            const perf_name2 = $(this).attr("data-name");
+            sel_remove_predecessor(perf_name1, perf_name2);
+        });
+
+        const cnf_paging = {
+            configurations: [],
+            current_page: 0,
+        };
+
+        function cnf_clear() {
+            cnf_paging.configurations = [];
+            cnf_paging.current_page = 0;
+            $(".cnf_group").remove();
+            $(".cnf_pagination").remove();
+        }
+
+        $(document).on('click', '#cnf_clear', cnf_clear);
+
+        function cnf_display_groups(configuration) {
+            $(".cnf_group").remove();
+            if (!configuration || configuration.length == 0) {
+                $(".cnf_groups").append('<h3 class="cnf_group">(No data to display)</h3>');
+                return;
+            }
+
+            var absolute_order = 1;
+            for (var i = 0; i < configuration.length; i++) {
+                const config = configuration[i];
+                var perfs = '';
+                for (var j = 0; j < config.performances.length; j++) {
+                    perfs += '<div>' + absolute_order + '. ' + config.performances[j] + '</div>';
+                    absolute_order++;
+                }
+                $(".cnf_groups").append('<div class="col-sm-3 cnf_group"><div class="panel panel-default"><div class="panel-heading"><div class="row"><div class="col-sm-10">' + config.group_name + '</div></div></div><div class="panel-body">' + perfs + '</div></div></div>');
+            }
+        }
+
+        function cnf_display_pagination() {
+            $(".cnf_pagination").remove();
+
+            const current_page = cnf_paging.current_page + 1;
+            const last_page = cnf_paging.configurations.length;
+            if (last_page < 1) {
+                return;
+            }
+            var pages = [1, 2, 3, current_page - 2, current_page - 1, current_page, current_page + 1, current_page + 2, last_page - 2, last_page - 1, last_page];
+            pages.sort(function (a, b) { return a - b; });
+
+            var prev_pagenum = 0;
+            var curr_index = 0;
+            while (curr_index < pages.length) {
+                const curr_pagenum = pages[curr_index];
+                if (curr_pagenum < 1 || curr_pagenum == prev_pagenum || curr_pagenum > last_page) {
+                    pages.splice(curr_index, 1);
+                } else if (curr_pagenum > prev_pagenum + 1) {
+                    pages.splice(curr_index, 0, "...");
+                    curr_index += 2;
+                } else {
+                    curr_index++;
+                }
+                prev_pagenum = curr_pagenum;
+            }
+
+            var pagination_items = "";
+            for (var i = 0; i < pages.length; i++) {
+                const curr_pagenum = pages[i];
+
+                var class_names = "";
+                if (curr_pagenum == current_page) {
+                    class_names = 'active';
+                } else if (!Number.isInteger(curr_pagenum)) {
+                    class_names = 'disabled';
+                } else {
+                    class_names = 'cnf_page interactable';
+                }
+                pagination_items += '<li class="' + class_names + '"><a>' + curr_pagenum + '</a></li>';
+            }
+            
+            $(".cnf_paginationpnl").append('<ul class="pagination cnf_pagination">' + pagination_items + '</ul>');
+        }
+
+        function cnf_display_page(page_index) {
+            cnf_paging.current_page = page_index;
+            if (!cnf_paging.configurations || page_index < 0 || cnf_paging.configurations.length <= page_index) {
+                return;
+            }
+
+            const config = cnf_paging.configurations[page_index];
+            cnf_display_groups(config);
+            cnf_display_pagination();
+        }
+
+        $(document).on('click', '#cnf_sort', function () {
+            cnf_clear();
+            const configurations = alg_find_configurations();
+            if (!configurations || configurations.length <= 0) {
+                alert("No configurations found");
+                return;
+            }
+
+            cnf_paging.configurations = configurations;
+            cnf_display_page(0);
+        });
+
+        $(document).on('click', '.cnf_page', function () {
+            const page_num = $(this).text();
+            const page_index = Number(page_num) - 1;
+            cnf_display_page(page_index);
+        });
+
+        function reset_all() {
+            Object.keys(groups).forEach(name => delete groups[name]);
+            Object.keys(performances).forEach(name => delete performances[name]);
+            while (groups_order.length > 0) {
+                groups_order.pop();
+            }
+
+            $(".perf_groups .perf_group:not(.auto_group)").remove();
+            $(".perf_group_item").remove();
+            cnf_clear();
+        }
+
+        function clone_workdata() {
+            const content = {
+                "groups": groups,
+                "groups_order": groups_order,
+                "performances": performances
+            };
+            return quick_clone(content);
+        }
+
+        $(document).on('click', '#doc_download', function () {
+            const text = JSON.stringify(clone_workdata());
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', "working_file.json");
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
+
+        $(document).on('change', '#doc_upload', function () {
+            const file = $(this)[0].files[0];
+            if (!file) {
+                alert("Could not load the given file")
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var contents = e.target.result;
+                try {
+                    const json_content = JSON.parse(contents);
+                    recreate(json_content.groups, json_content.groups_order, json_content.performances);
+                } catch (error) {
+                    console.log(error);
+                    alert("Fatal error while reading the file");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        function recreate(custom_groups, custom_ordered_groups, custom_perfs) {
+            reset_all();
+
+            for (var i = 0; i < custom_ordered_groups.length; i++) {
+                const group_name = custom_ordered_groups[i];
+                const new_group = custom_groups[group_name];
+                np_add_group(group_name, new_group.name, new_group.max_size);
+            }
+
+            for (const perf_name in custom_perfs) {
+                const new_perf = custom_perfs[perf_name];
+                np_add_performance(perf_name, new_perf.group, new_perf.deadline);
+            }
+
+            for (const perf_name in custom_perfs) {
+                const new_perf = custom_perfs[perf_name];
+                for (const conflict in new_perf.conflicts) {
+                    sel_add_conflict(perf_name, conflict);
+                }
+                for (const predecessor in new_perf.predecessors) {
+                    sel_add_predecessor(perf_name, predecessor);
+                }
+            }
+        }
+
+        // Initiate
+        reset_all();
+        $("#perf_group_add").click();
+
+        // Algorithm
+        const alg_configurations_limit = 100;
+
+        function alg_construct_helperdata() {
+            const workdata = clone_workdata();
+
+            // Fill current groups' lengths and performances
+            for (var group_name in workdata.groups) {
+                const group_perfs = get_group_perfs(group_name);
+                const group = workdata.groups[group_name];
+                group.current_size = group_perfs.length;
+                group.current_perfs = group_perfs;
+            }
+
+            // Try to deduce which groups are applicable for each of the unsorted performances
+            const unsorted_perfs = get_group_perfs("auto");
+            unsorted_perfs.sort(function (a, b) {
+                const comparers = [];
+                [a, b].forEach(function (item) {
+                    const perf = workdata.performances[item];
+                    const deadline = !!perf.deadline ? Number(perf.deadline) : 0;
+                    comparers.push(deadline <= 0 ? workdata.performances.length + 1 : deadline);
+                });
+                return comparers[0] - comparers[1];
+            });
+            for (var i = 0; i < unsorted_perfs.length; i++) {
+                const perf_name = unsorted_perfs[i];
+                const perf = workdata.performances[perf_name];
+                const deadline = !!perf.deadline ? Number(perf.deadline) : 0;
+                delete perf.group;
+                if (deadline <= 0) {
+                    perf.groups = workdata.groups_order;
+                    continue;
+                }
+
+                perf.groups = [];
+                var minimum_order = 0;
+                for (var j = 0; j < workdata.groups_order.length; j++) {
+                    const group_name = workdata.groups_order[j];
+                    const group = workdata.groups[group_name];
+
+                    // Cannot put to the current group, otherwise the deadline would not be satisfied?
+                    if (minimum_order >= deadline) {
+                        break;
+                    }
+                    // Is this group completely filled?
+                    if (group.current_size < group.max_size) {
+                        perf.groups.push(group_name);
+                    }
+                    minimum_order += group.current_size;
+                }
+
+                if (perf.groups.length <= 0) {
+                    alert("Impossible to satisfy all of the conditions, the performance's '" + perf_name + "' deadline '" + deadline + "' cannot be fulfilled due to the given group sizes");
+                    return null;
+                } else if (perf.groups.length == 1) {
+                    perf.group = perf.groups[0];
+                    delete perf.groups;
+
+                    const group = workdata.groups[perf.group];
+                    group.current_size++;
+                    group.current_perfs.push(perf_name);
+                }
+            }
+
+            return workdata;
+        }
+
+        function alg_get_unsorted_perfs(workdata) {
+            const perfs_result = [];
+            for (var perf_name in workdata.performances) {
+                const performance = workdata.performances[perf_name];
+                if (!performance.group && performance.groups.length > 0) {
+                    perfs_result.push(perf_name);
+                }
+            }
+
+            return perfs_result;
+        }
+
+        function alg_try_group_combinations(workdata, unsorted_perfs, index, callback) {
+            if (index >= unsorted_perfs.length) {
+                return callback();
+            }
+
+            const perf_name = unsorted_perfs[index];
+            const perf = workdata.performances[perf_name];
+            var should_continue = true;
+
+            for (var j = 0; j < perf.groups.length; j++) {
+                const group_name = perf.groups[j];
+                const group = workdata.groups[group_name];
+                if (group.max_size <= group.current_size) {
+                    continue;
+                }
+
+                group.current_size++;
+                group.current_perfs.push(perf_name);
+                perf.group = group_name;
+
+                should_continue &= alg_try_group_combinations(workdata, unsorted_perfs, index + 1, callback);
+
+                group.current_size--;
+                group.current_perfs.pop();
+                if (!should_continue) {
+                    break;
+                }
+            }
+
+            delete perf.group;
+            return should_continue;
+        }
+
+        function alg_try_perf_sorts(workdata, group_name, current_sort, perfs_used, callback) {
+            const perfs = workdata.groups[group_name].current_perfs;
+            if (perfs.length <= 0) {
+                return callback(current_sort);
+            }
+
+            var should_continue = true;
+            const original_length = perfs.length;
+            for (var i = 0; i < original_length; i++) {
+                const perf_name = perfs[i];
+                const perf = workdata.performances[perf_name];
+
+                // Check, whether the deadline is satisfied
+                if (!!perf.deadline && perf.deadline > 0) {
+                    const current_order = Object.keys(perfs_used).length;
+                    if (current_order >= perf.deadline) {
+                        continue;
+                    }
+                }
+
+                // Check, whether the succession is satisfied
+                var predecessors_satisfied = true;
+                for (var pred_perf_name in perf.predecessors) {
+                    if (!(pred_perf_name in perfs_used)) {
+                        predecessors_satisfied = false;
+                        break;
+                    }
+                }
+                if (!predecessors_satisfied) {
+                    continue;
+                }
+
+                // Check, whether the conflicting pairs are satisfied
+                var conflicts_satisfied = true;
+                if (current_sort.length > 0 && Object.keys(perf.conflicts).length > 0) {
+                    const cnf_begin_index = Math.max(0, current_sort.length - workdata.conflict_spaces);
+                    for (var j = cnf_begin_index; j < current_sort.length; j++) {
+                        if (current_sort[j] in perf.conflicts) {
+                            conflicts_satisfied = false;
+                            break;
+                        }
+                    }
+                }
+                if (!conflicts_satisfied) {
+                    continue;
+                }
+
+                perfs.splice(i, 1);
+                current_sort.push(perf_name);
+                perfs_used[perf_name] = true;
+
+                should_continue &= alg_try_perf_sorts(workdata, group_name, current_sort, perfs_used, callback);
+
+                delete perfs_used[perf_name];
+                current_sort.pop();
+                perfs.splice(i, 0, perf_name);
+                if (!should_continue) {
+                    break;
+                }
+            }
+
+            return should_continue;
+        }
+
+        function alg_create_group_configurations(workdata, group_name, limit) {
+            // Construct a dictionary of performance names that have been already used by the previous groups
+            const perfs_used = {};
+            for (var i = 0; i < workdata.groups_order.length; i++) {
+                const gn = workdata.groups_order[i];
+                if (group_name == gn) {
+                    break;
+                }
+
+                const group_perfs = workdata.groups[gn].current_perfs;
+                for (var j = 0; j < group_perfs.length; j++) {
+                    perfs_used[group_perfs[j]] = true;
+                }
+            }
+
+            // Find out all configurations for the current group
+            const configurations = [];
+            const group = workdata.groups[group_name];
+            alg_try_perf_sorts(workdata, group_name, [], perfs_used, function (viable_sort) {
+                const partial_config = [{
+                    "group_name": group.name,
+                    "performances": quick_clone(viable_sort)
+                }];
+                configurations.push(partial_config);
+                return configurations.length < limit;
+            });
+
+            return configurations;
+        }
+
+        function alg_create_full_configurations(workdata) {
+            // At this point we receive workdata, which has each performance assigned somewhere (no affinities to auto category)
+            // Find valid configurations for each group independently
+            var full_configurations = [[]];
+
+            var limit = alg_configurations_limit;
+            for (var i = 0; i < workdata.groups_order.length; i++) {
+                const group_name = workdata.groups_order[i];
+                const group_configurations = alg_create_group_configurations(workdata, group_name, limit);
+                if (!group_configurations || group_configurations.length <= 0) {
+                    return [];
+                }
+
+                // Expand the configurations for the groups 0..i-1 with the newly found configurations for the group i (cartesian product)
+                var new_configurations = [];
+                for (var j = 0; j < full_configurations.length; j++) {
+                    const prev_configuration = full_configurations[j];
+
+                    for (var k = 0; k < group_configurations.length; k++) {    
+                        const group_configuration = group_configurations[k];
+                        new_configurations.push(prev_configuration.concat(group_configuration));
+                    }
+                }
+                full_configurations = new_configurations;
+
+                // Update the limit in a way so that we don't waste time finding all configurations for the subsequent groups
+                // For instance, if the overall limit is 100 and we found in the first group 50 configurations, then in the second configuration we want to find at most 2 configurations, because 2 * 50 = 100
+                limit = Math.max(1, limit / full_configurations.length);
+            }
+
+            return full_configurations;
+        }
+
+        function alg_find_configurations() {
+            const workdata = alg_construct_helperdata();
+            if (!workdata) {
+                alert("'alg_construct_helperdata()' failed to return any work data");
+                return;
+            }
+
+            workdata.conflict_spaces = $("#cnf_spaces").val();
+
+            var group_buffer_length = 0;
+            for (var group_name in workdata.groups) {
+                const group = workdata.groups[group_name];
+                group_buffer_length += Math.max(group.max_size - group.current_size, 0);
+            }
+
+            const unsorted_perfs = alg_get_unsorted_perfs(workdata);
+            if (unsorted_perfs.length > group_buffer_length) {
+                alert("Insufficient group sizes, the amount of performances within 'auto' category exceed the buffer available");
+                return;
+            }
+
+            // Find out all configurations, up to the given limit
+            const configurations = [];
+            alg_try_group_combinations(workdata, unsorted_perfs, 0, function () {
+                const current_configurations = alg_create_full_configurations(workdata);
+                const max_configurations = Math.min(current_configurations.length, alg_configurations_limit);
+                for (var i = 0; i < max_configurations; i++) {
+                    configurations.push(current_configurations[i]);
+                }
+
+                return configurations.length < alg_configurations_limit;
+            });
+
+            return configurations;
+        }
+    </script>
+</body>
+</html>
